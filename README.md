@@ -1,0 +1,4 @@
+We used Caffe to build a Convolutional Neural Network for image classification on the CIFAR100 dataset. 
+It had 3 conv layers, a fully connected layer and softmax layers of coarse and fine labels. We tried different activations like tanh, relu, sigmoid. ReLu seemed to work best. We used MAX pooling for the 1st conv layer and Average pooling for the other 2. The network has 6 layers and apporximately 812,000 parameters. 
+
+We used an AWS g2.2large instance with a NVIDIA GRID K520 GPU and 8GB RAM. It took around 35 minutes to train the network on the CIFAR100 dataset. We used the HDF5 format for training. We got an accuracy of 56% on the coarse labels and 45% on the fine labels. 

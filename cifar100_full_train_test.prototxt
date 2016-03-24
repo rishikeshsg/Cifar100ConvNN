@@ -1,0 +1,268 @@
+name: "CIFAR100_full"
+layer {
+  name: "cifar"
+  type: "HDF5Data"
+  top: "data"
+  top: "label_coarse"
+  top: "label_fine"
+  include {
+    phase: TRAIN
+  }
+  hdf5_data_param {
+    source: "examples/cifar100/cifar_100_caffe_hdf5/train.txt"
+    batch_size: 100
+  }
+}
+layer {
+  name: "cifar"
+  type: "HDF5Data"
+  top: "data"
+  top: "label_coarse"
+  top: "label_fine"
+  include {
+    phase: TEST
+  }
+  hdf5_data_param {
+    source: "examples/cifar100/cifar_100_caffe_hdf5/test.txt"
+    batch_size: 100
+  }
+}
+layer {
+  name: "conv1"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 32
+    pad: 2
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.0001
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "pool1"
+  type: "Pooling"
+  bottom: "conv1"
+  top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "relu1"
+  type: "ReLU"
+  bottom: "pool1"
+  top: "pool1"
+}
+layer {
+  name: "conv2"
+  type: "Convolution"
+  bottom: "pool1"
+  top: "conv2"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 32
+    pad: 2
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu2"
+  type: "ReLU"
+  bottom: "conv2"
+  top: "conv2"
+}
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "conv2"
+  top: "pool2"
+  pooling_param {
+    pool: AVE
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "conv3"
+  type: "Convolution"
+  bottom: "pool2"
+  top: "conv3"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 64
+    pad: 2
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "relu3"
+  type: "ReLU"
+  bottom: "conv3"
+  top: "conv3"
+}
+layer {
+  name: "pool3"
+  type: "Pooling"
+  bottom: "conv3"
+  top: "pool3"
+  pooling_param {
+    pool: AVE
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "ip1"
+  type: "InnerProduct"
+  bottom: "pool3"
+  top: "ip1"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 768
+    weight_filler {
+      type: "gaussian"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+layer {
+  name: "sig1"
+  bottom: "ip1"
+  top: "sig1"
+  type: "Sigmoid"
+}
+
+layer {
+  name: "ip2"
+  type: "InnerProduct"
+  bottom: "sig1"
+  top: "ip2"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 20
+    weight_filler {
+      type: "gaussian"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "accuracy_c"
+  type: "Accuracy"
+  bottom: "ip2"
+  bottom: "label_coarse"
+  top: "accuracy_c"
+  include {
+    phase: TEST
+  }
+
+}
+layer {
+  name: "loss_c"
+  type: "SoftmaxWithLoss"
+  bottom: "ip2"
+  bottom: "label_coarse"
+  top: "loss_c"
+}
+
+
+
+layer {
+  name: "ip3"
+  type: "InnerProduct"
+  bottom: "sig1"
+  top: "ip3"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 100
+    weight_filler {
+      type: "gaussian"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "accuracy_f"
+  type: "Accuracy"
+  bottom: "ip3"
+  bottom: "label_fine"
+  top: "accuracy_f"
+  include {
+    phase: TEST
+  }
+
+}
+layer {
+  name: "loss_f"
+  type: "SoftmaxWithLoss"
+  bottom: "ip3"
+  bottom: "label_fine"
+  top: "loss_f"
+}
